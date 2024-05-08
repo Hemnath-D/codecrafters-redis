@@ -26,10 +26,16 @@ public class Main {
             PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             String inputLine = in.readLine();
-            System.out.println(inputLine);
-
-            printWriter.print("+PONG\r\n");
-            printWriter.flush();
+            inputLine = in.readLine();
+            inputLine = in.readLine();
+            while (inputLine != null) {
+                System.out.println(inputLine);
+                printWriter.print("+PONG\r\n");
+                printWriter.flush();
+                inputLine = in.readLine();
+                inputLine = in.readLine();
+                inputLine = in.readLine();
+            }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
         } finally {
