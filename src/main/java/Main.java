@@ -4,9 +4,11 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import org.hemz.redis.handler.Command;
 
 
 public class Main {
@@ -37,16 +39,18 @@ public class Main {
             clientSocket = serverSocket.accept();
             PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            String inputLine = in.readLine();
-            inputLine = in.readLine();
-            inputLine = in.readLine();
-            while (inputLine != null) {
-                System.out.println(inputLine);
-                printWriter.print("+PONG\r\n");
-                printWriter.flush();
-                inputLine = in.readLine();
-                inputLine = in.readLine();
-                inputLine = in.readLine();
+            while(true) {
+                String inputLine = in.readLine();
+                int commandLength = Integer.parseInt(inputLine.substring(1));
+                List<String> commandList = new ArrayList<>();
+                for (int i = 0; i < commandLength; i++) {
+                    inputLine = in.readLine();
+                    int stringLength = Integer.parseInt(inputLine.substring(1));
+                    inputLine = in.readLine();
+                    String command = inputLine.substring(0, stringLength);
+                    commandList.add(command);
+                }
+                processCommandList(printWriter, commandList);
             }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
@@ -56,6 +60,20 @@ public class Main {
             } catch (IOException ioException) {
                 System.out.println(ioException.getMessage());
             }
+        }
+    }
+
+    static void processCommandList(PrintWriter printWriter, List<String> commandList) {
+        String commandIdentifier = commandList.get(0).toUpperCase();
+        if (Command.PING.name().equals(commandIdentifier)) {
+            printWriter.print("+PONG\r\n");
+            printWriter.flush();
+        } else if (Command.ECHO.name().equals(commandIdentifier)) {
+            String echoString = commandList.get(1);
+            String returnString = String.format("$%1$s\r%n%2$s\r%n", echoString.length(), echoString);
+            System.out.println(returnString);
+            printWriter.print(returnString);
+            printWriter.flush();
         }
     }
 }
