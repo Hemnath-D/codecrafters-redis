@@ -2,14 +2,26 @@ package org.hemz.redis.store;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 
 public class DataStore {
-    Map<String, String> data = new HashMap<>();
-    public String put(String key, String value) {
-        return data.put(key, value);
+    Map<String, Data> data = new HashMap<>();
+    public void put(String key, String value) {
+        data.put(key, new Data(value));
     }
-    public String get(String key) {
-        return data.get(key);
+
+    public void put(String key, String value, long expiry) {
+        data.put(key, new Data(value, expiry));
+    }
+
+    public Optional<String> get(String key) {
+        Data element = this.data.get(key);
+        long currentTimeMillis = System.currentTimeMillis();
+        if(element.getExpiryTime() <= currentTimeMillis) {
+            this.data.remove(key);
+            return Optional.empty();
+        }
+        return Optional.ofNullable(element.getValue());
     }
 }

@@ -2,6 +2,7 @@ package org.hemz.redis.handler;
 
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Optional;
 import org.hemz.redis.store.DataStore;
 
 
@@ -24,14 +25,26 @@ public class Handler {
         } else if(Command.SET.name().equals(commandIdentifier)) {
             String key = commandList.get(1);
             String value = commandList.get(2);
-            dataStore.put(key, value);
+            if(commandList.size() == 3) {
+                dataStore.put(key, value);
+            } else {
+                if("PX".equalsIgnoreCase(commandList.get(3))) {
+                    dataStore.put(key, value, Long.parseLong(commandList.get(4)));
+                }
+            }
             String returnString = String.format("+OK\r\n");
             printWriter.print(returnString);
             printWriter.flush();
         } else if(Command.GET.name().equals(commandIdentifier)) {
             String key = commandList.get(1);
-            String value = dataStore.get(key);
-            String returnString = String.format("$%1$s\r%n%2$s\r%n", value.length(), value);
+            Optional<String> valueOpt = dataStore.get(key);
+            String returnString;
+            if(valueOpt.isPresent()) {
+                String value = valueOpt.get();
+                returnString = String.format("$%1$s\r%n%2$s\r%n", value.length(), value);
+            } else {
+                returnString = "$-1\r\n";
+            }
             printWriter.print(returnString);
             printWriter.flush();
         }
