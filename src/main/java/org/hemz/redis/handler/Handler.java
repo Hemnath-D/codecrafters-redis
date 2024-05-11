@@ -47,6 +47,12 @@ public class Handler {
             }
             printWriter.print(returnString);
             printWriter.flush();
+        } else if(Command.INFO.name().equals(commandIdentifier)) {
+            String argument = commandList.get(1);
+            if(argument.equalsIgnoreCase("replication")) {
+                printWriter.print("$11\r\nrole:master\r\n");
+                printWriter.flush();
+            }
         }
     }
 }

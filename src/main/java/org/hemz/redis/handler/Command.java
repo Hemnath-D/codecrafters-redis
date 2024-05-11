@@ -4,5 +4,6 @@ public enum Command {
     PING,
     ECHO,
     GET,
-    SET
+    SET,
+    INFO
 }
