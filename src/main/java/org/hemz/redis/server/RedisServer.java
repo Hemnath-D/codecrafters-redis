@@ -5,6 +5,8 @@ public class RedisServer {
     private Mode mode = Mode.MASTER;
     private String masterHost;
     private String masterPort;
+    private String masterReplId;
+    private String masterReplOffset;
     public RedisServer(String[] args) {
         int i = 0;
         while(i < args.length) {
@@ -21,6 +23,10 @@ public class RedisServer {
             }
             i++;
         }
+        if(this.mode == Mode.MASTER) {
+            this.masterReplId = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
+            this.masterReplOffset = "0";
+        }
     }
 
     public int getPort() {
@@ -29,5 +35,13 @@ public class RedisServer {
 
     public Mode getMode() {
         return mode;
+    }
+
+    public String getMasterReplId() {
+        return masterReplId;
+    }
+
+    public String getMasterReplOffset() {
+        return masterReplOffset;
     }
 }

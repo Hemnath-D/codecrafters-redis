@@ -3,6 +3,8 @@ package org.hemz.redis.handler;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Optional;
+import org.hemz.redis.response.BulkStringEncoder;
+import org.hemz.redis.server.Mode;
 import org.hemz.redis.server.RedisServer;
 import org.hemz.redis.store.DataStore;
 
@@ -21,7 +23,7 @@ public class Handler {
             printWriter.flush();
         } else if (Command.ECHO.name().equals(commandIdentifier)) {
             String echoString = commandList.get(1);
-            String returnString = String.format("$%1$s\r%n%2$s\r%n", echoString.length(), echoString);
+            String returnString = BulkStringEncoder.encode(echoString);
             System.out.println(returnString);
             printWriter.print(returnString);
             printWriter.flush();
@@ -44,7 +46,7 @@ public class Handler {
             String returnString;
             if(valueOpt.isPresent()) {
                 String value = valueOpt.get();
-                returnString = String.format("$%1$s\r%n%2$s\r%n", value.length(), value);
+                returnString = BulkStringEncoder.encode(value);
             } else {
                 returnString = "$-1\r\n";
             }
@@ -54,8 +56,11 @@ public class Handler {
             String argument = commandList.get(1);
             if(argument.equalsIgnoreCase("replication")) {
                 String replicationMode = redisServer.getMode().getDisplayName();
-                String returnString = String.format("$%1$s\r%nrole:%2$s\r%n", replicationMode.length() + 5,
-                        replicationMode);
+                String returnString = BulkStringEncoder.encode("role:" + replicationMode);
+                if(redisServer.getMode() == Mode.MASTER) {
+                    returnString = BulkStringEncoder.encode(String.format("role:%1$s\nmaster_replid:%2$s\nmaster_repl_offset:%3$s", replicationMode,
+                            redisServer.getMasterReplId(), redisServer.getMasterReplOffset()));
+                }
                 printWriter.print(returnString);
                 printWriter.flush();
             }
