@@ -21,6 +21,12 @@ public class Main {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
 
         int port = 6379;
+        if(args.length >= 2) {
+            if("--port".equals(args[0])) {
+                port = Integer.parseInt(args[1]);
+            }
+        }
+        System.out.println("Running in port: " + port);
         try {
             ServerSocket serverSocket = new ServerSocket(port);
             // Since the tester restarts your program quite often, setting SO_REUSEADDR
