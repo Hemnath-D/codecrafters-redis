@@ -3,12 +3,15 @@ package org.hemz.redis.handler;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Optional;
+import org.hemz.redis.server.RedisServer;
 import org.hemz.redis.store.DataStore;
 
 
 public class Handler {
     private DataStore dataStore;
-    public Handler(DataStore dataStore) {
+    private RedisServer redisServer;
+    public Handler(RedisServer redisServer, DataStore dataStore) {
+        this.redisServer = redisServer;
         this.dataStore = dataStore;
     }
     public void processCommandList(PrintWriter printWriter, List<String> commandList) {
@@ -50,7 +53,10 @@ public class Handler {
         } else if(Command.INFO.name().equals(commandIdentifier)) {
             String argument = commandList.get(1);
             if(argument.equalsIgnoreCase("replication")) {
-                printWriter.print("$11\r\nrole:master\r\n");
+                String replicationMode = redisServer.getMode().getDisplayName();
+                String returnString = String.format("$%1$s\r%nrole:%2$s\r%n", replicationMode.length() + 5,
+                        replicationMode);
+                printWriter.print(returnString);
                 printWriter.flush();
             }
         }

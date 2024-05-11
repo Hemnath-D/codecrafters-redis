@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.hemz.redis.handler.Command;
 import org.hemz.redis.handler.Handler;
+import org.hemz.redis.server.RedisServer;
 import org.hemz.redis.store.DataStore;
 
 
@@ -20,29 +20,25 @@ public class Main {
         DataStore dataStore = new DataStore();
         ExecutorService executorService = Executors.newFixedThreadPool(10);
 
-        int port = 6379;
-        if(args.length >= 2) {
-            if("--port".equals(args[0])) {
-                port = Integer.parseInt(args[1]);
-            }
-        }
-        System.out.println("Running in port: " + port);
+        RedisServer redisServer = new RedisServer(args);
+
+        System.out.println("Running in port: " + redisServer.getPort());
         try {
-            ServerSocket serverSocket = new ServerSocket(port);
+            ServerSocket serverSocket = new ServerSocket(redisServer.getPort());
             // Since the tester restarts your program quite often, setting SO_REUSEADDR
             // ensures that we don't run into 'Address already in use' errors
             serverSocket.setReuseAddress(true);
             // Wait for connection from client.
 
             for(int i = 0; i < 10; i++) {
-                executorService.submit(() -> handleCommand(serverSocket, dataStore));
+                executorService.submit(() -> handleCommand(serverSocket, dataStore, redisServer));
             }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
         }
     }
 
-    private static void handleCommand(ServerSocket serverSocket, DataStore dataStore) {
+    private static void handleCommand(ServerSocket serverSocket, DataStore dataStore, RedisServer redisServer) {
         Socket clientSocket = null;
         try {
             clientSocket = serverSocket.accept();
@@ -59,7 +55,7 @@ public class Main {
                     String command = inputLine.substring(0, stringLength);
                     commandList.add(command);
                 }
-                Handler handler = new Handler(dataStore);
+                Handler handler = new Handler(redisServer, dataStore);
                 handler.processCommandList(printWriter, commandList);
             }
         } catch (IOException e) {
