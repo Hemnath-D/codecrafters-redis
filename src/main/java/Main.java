@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.hemz.redis.handler.Handler;
+import org.hemz.redis.server.Mode;
 import org.hemz.redis.server.RedisServer;
 import org.hemz.redis.store.DataStore;
 
@@ -21,10 +22,15 @@ public class Main {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
 
         RedisServer redisServer = new RedisServer(args);
-
-        System.out.println("Running in port: " + redisServer.getPort());
         try {
+            if(redisServer.getMode() == Mode.SLAVE) {
+                Socket replicationClient = new Socket(redisServer.getMasterHost(),redisServer.getMasterPort());
+                PrintWriter printWriter = new PrintWriter(replicationClient.getOutputStream());
+                printWriter.write("*1\r\n$4\r\nPING\r\n");
+                printWriter.flush();
+            }
             ServerSocket serverSocket = new ServerSocket(redisServer.getPort());
+            System.out.println("Running in port: " + redisServer.getPort());
             // Since the tester restarts your program quite often, setting SO_REUSEADDR
             // ensures that we don't run into 'Address already in use' errors
             serverSocket.setReuseAddress(true);

@@ -4,7 +4,7 @@ public class RedisServer {
     private int port = 6379;
     private Mode mode = Mode.MASTER;
     private String masterHost;
-    private String masterPort;
+    private int masterPort;
     private String masterReplId;
     private String masterReplOffset;
     public RedisServer(String[] args) {
@@ -15,9 +15,11 @@ public class RedisServer {
                 i++;
             } else if("--replicaof".equals(args[i])) {
                 this.mode = Mode.SLAVE;
-                this.masterHost = args[i + 1];
-                this.masterPort = args[i + 2];
-                i += 2;
+                String masterString = args[i + 1];
+                String[] splitMasterString = masterString.split(" ");
+                this.masterHost = splitMasterString[0];
+                this.masterPort = Integer.parseInt(splitMasterString[1]);
+                i++;
             } else {
                 throw new RuntimeException("Unrecognized option from command line");
             }
@@ -27,6 +29,14 @@ public class RedisServer {
             this.masterReplId = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
             this.masterReplOffset = "0";
         }
+    }
+
+    public String getMasterHost() {
+        return masterHost;
+    }
+
+    public int getMasterPort() {
+        return masterPort;
     }
 
     public int getPort() {
