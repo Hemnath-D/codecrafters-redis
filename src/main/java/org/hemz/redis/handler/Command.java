@@ -6,5 +6,6 @@ public enum Command {
     GET,
     SET,
     INFO,
-    REPLCONF
+    REPLCONF,
+    PSYNC
 }

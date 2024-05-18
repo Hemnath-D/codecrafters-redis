@@ -71,6 +71,9 @@ public class Handler {
         } else if (Command.REPLCONF.name().equals(commandIdentifier)) {
             printWriter.print("+OK\r\n");
             printWriter.flush();
+        } else if (Command.PSYNC.name().equals(commandIdentifier)) {
+            printWriter.print("+FULLRESYNC <REPL_ID> 0\r\n");
+            printWriter.flush();
         }
     }
 }

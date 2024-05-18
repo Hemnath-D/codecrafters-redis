@@ -41,5 +41,14 @@ public class ReplicationHandler {
         outputCommandList = IOUtils.readCommands(bufferedReader);
         System.out.println("Received Response");
         outputCommandList.stream().forEach(System.out::println);
+        commandList = IOUtils.encodeAsList("PSYNC", "?", "-1");
+        for(String command: commandList) {
+            printWriter.print(command);
+            printWriter.flush();
+        }
+        printWriter.flush();
+        outputCommandList = IOUtils.readCommands(bufferedReader);
+        System.out.println("Received Response");
+        outputCommandList.stream().forEach(System.out::println);
     }
 }
