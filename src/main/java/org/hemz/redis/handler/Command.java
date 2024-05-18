@@ -5,5 +5,6 @@ public enum Command {
     ECHO,
     GET,
     SET,
-    INFO
+    INFO,
+    REPLCONF
 }

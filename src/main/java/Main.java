@@ -9,8 +9,10 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.hemz.redis.handler.Handler;
+import org.hemz.redis.response.IOUtils;
 import org.hemz.redis.server.Mode;
 import org.hemz.redis.server.RedisServer;
+import org.hemz.redis.server.ReplicationHandler;
 import org.hemz.redis.store.DataStore;
 
 
@@ -19,15 +21,13 @@ public class Main {
         // You can use print statements as follows for debugging, they'll be visible when running tests.
         System.out.println("Logs from your program will appear here!");
         DataStore dataStore = new DataStore();
+        ReplicationHandler replicationHandler = new ReplicationHandler();
         ExecutorService executorService = Executors.newFixedThreadPool(10);
 
         RedisServer redisServer = new RedisServer(args);
         try {
             if(redisServer.getMode() == Mode.SLAVE) {
-                Socket replicationClient = new Socket(redisServer.getMasterHost(),redisServer.getMasterPort());
-                PrintWriter printWriter = new PrintWriter(replicationClient.getOutputStream());
-                printWriter.write("*1\r\n$4\r\nPING\r\n");
-                printWriter.flush();
+                replicationHandler.performReplicationHandshake(redisServer);
             }
             ServerSocket serverSocket = new ServerSocket(redisServer.getPort());
             System.out.println("Running in port: " + redisServer.getPort());
@@ -44,6 +44,8 @@ public class Main {
         }
     }
 
+
+
     private static void handleCommand(ServerSocket serverSocket, DataStore dataStore, RedisServer redisServer) {
         Socket clientSocket = null;
         try {
@@ -51,16 +53,7 @@ public class Main {
             PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             while(true) {
-                String inputLine = in.readLine();
-                int commandLength = Integer.parseInt(inputLine.substring(1));
-                List<String> commandList = new ArrayList<>();
-                for (int i = 0; i < commandLength; i++) {
-                    inputLine = in.readLine();
-                    int stringLength = Integer.parseInt(inputLine.substring(1));
-                    inputLine = in.readLine();
-                    String command = inputLine.substring(0, stringLength);
-                    commandList.add(command);
-                }
+                List<String> commandList = IOUtils.readCommands(in);
                 Handler handler = new Handler(redisServer, dataStore);
                 handler.processCommandList(printWriter, commandList);
             }
