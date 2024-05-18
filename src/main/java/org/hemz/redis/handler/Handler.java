@@ -72,7 +72,9 @@ public class Handler {
             printWriter.print("+OK\r\n");
             printWriter.flush();
         } else if (Command.PSYNC.name().equals(commandIdentifier)) {
-            printWriter.print("+FULLRESYNC <REPL_ID> 0\r\n");
+            String psyncResponse = String.format("+FULLRESYNC %1$s %2$s\r\n", redisServer.getMasterReplId(),
+                    redisServer.getMasterReplOffset());
+            printWriter.print(psyncResponse);
             printWriter.flush();
         }
     }
