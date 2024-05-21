@@ -1,6 +1,10 @@
 package org.hemz.redis.handler;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import org.hemz.redis.response.IOUtils;
@@ -16,7 +20,9 @@ public class Handler {
         this.redisServer = redisServer;
         this.dataStore = dataStore;
     }
-    public void processCommandList(PrintWriter printWriter, List<String> commandList) {
+    public void processCommandList(OutputStream outputStream, List<String> commandList) {
+        PrintWriter printWriter = new PrintWriter(outputStream);
+        PrintStream printStream = new PrintStream(outputStream);
         String commandIdentifier = commandList.get(0).toUpperCase();
         for(String command : commandList) {
             System.out.println(command);
@@ -76,6 +82,13 @@ public class Handler {
                     redisServer.getMasterReplOffset());
             printWriter.print(psyncResponse);
             printWriter.flush();
+            String emptyHexRDBFile =
+                    "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==";
+            byte[] bytes = Base64.getDecoder().decode(emptyHexRDBFile);
+            printWriter.print(String.format("$%s\r%n", bytes.length));
+            printWriter.flush();
+            printStream.write(bytes, 0, bytes.length);
+            printStream.flush();
         }
     }
 }

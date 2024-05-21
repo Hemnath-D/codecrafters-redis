@@ -50,12 +50,11 @@ public class Main {
         Socket clientSocket = null;
         try {
             clientSocket = serverSocket.accept();
-            PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             while(true) {
                 List<String> commandList = IOUtils.readCommands(in);
                 Handler handler = new Handler(redisServer, dataStore);
-                handler.processCommandList(printWriter, commandList);
+                handler.processCommandList(clientSocket.getOutputStream(), commandList);
             }
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
